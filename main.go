@@ -2,6 +2,10 @@ package main
 
 import (
 	"fmt"
+	"net/http"
+	"os"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -248,12 +252,21 @@ type Mystery struct {
 	Dedication string
 }
 
-func (m *Mystery) print() {
+func (m *Mystery) Print() {
 	fmt.Println(m.Name)
 	fmt.Println(m.Dedication)
 	fmt.Println(m.Verse)
 	fmt.Println(m.Text)
 	fmt.Println()
+}
+
+func (m *Mystery) String() string {
+	return strings.Join([]string{
+		m.Name,
+		m.Dedication,
+		m.Verse,
+		m.Text,
+	}, "\n")
 }
 
 func p(lines []string) {
@@ -263,24 +276,69 @@ func p(lines []string) {
 	fmt.Println()
 }
 
+var of = strings.Join(enOurFather, "\n")
+var soc = strings.Join(enSignOfTheCross, "\n")
+var ac = strings.Join(enApostlesCreed, "\n")
+var gb = strings.Join(enGloryBe, "\n")
+var fp = strings.Join(enFatimaPrayer, "\n")
+var hhq = strings.Join(enHailHolyQueen, "\n")
+var hm = strings.Join(enHailMary, "\n")
+
+func m(i int) string {
+	return todaysMysteries()[i].String()
+}
+
+func getPrayer(i int) string {
+	switch i {
+	case 0, 78:
+		return soc
+	case 1:
+		return ac
+	case 2, 8, 22, 36, 50, 64:
+		return of
+	case 6, 19, 33, 47, 61, 75:
+		return gb
+	case 7:
+		return m(0)
+	case 20, 34, 48, 62, 76:
+		return fp
+	case 21:
+		return m(1)
+	case 35:
+		return m(2)
+	case 49:
+		return m(3)
+	case 63:
+		return m(4)
+	case 77:
+		return hhq
+	default:
+		return hm
+	}
+}
+
 func main() {
-	mysteries := todaysMysteries()
-	p(enSignOfTheCross)
-	p(enApostlesCreed)
-	p(enOurFather)
-	for i := 0; i < 3; i++ {
-		p(enHailMary)
-	}
-	p(enGloryBe)
-	for i := 0; i < 5; i++ {
-		mysteries[i].print()
-		p(enOurFather)
-		for j := 0; j < 10; j++ {
-			p(enHailMary)
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Content-Type", "text/html")
+		fmt.Fprintf(w, "<pre><a href=\"/0\">Begin</a></pre>")
+	})
+	http.HandleFunc("/{i}", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Content-Type", "text/html")
+		i, err := strconv.Atoi(r.PathValue("i"))
+		if err != nil {
+			http.NotFound(w, r)
+			return
 		}
-		p(enGloryBe)
-		p(enFatimaPrayer)
+		fmt.Fprintf(w, "<pre>")
+		if i < 78 {
+			fmt.Fprintf(w, "<a href=\"/%d\">Next</a> (%d/79)\n\n", i+1, i+1)
+		}
+		fmt.Fprintf(w, getPrayer(i))
+		fmt.Fprintf(w, "</pre>")
+	})
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "3000"
 	}
-	p(enHailHolyQueen)
-	p(enSignOfTheCross)
+	http.ListenAndServe(":"+port, nil)
 }
