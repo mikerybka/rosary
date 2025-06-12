@@ -2,13 +2,25 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
+	"text/template"
 	"time"
 )
 
+type Prayer struct {
+	Verses []string `json:"verses"`
+}
+
+func (p *Prayer) WriteHTML(w io.Writer) error {
+	tmpl := `<div style="text-align: center;">{{ range .Verses }}<p>{{ . }}</p>{{ end }}</div>`
+	return template.Must(template.New("prayer").Parse(tmpl)).Execute(w, p)
+}
+
+var SignOfTheCross = Prayer{enSignOfTheCross}
 var enSignOfTheCross = []string{
 	"In the name of the Father,",
 	"And of the Son,",
@@ -16,6 +28,7 @@ var enSignOfTheCross = []string{
 	"Amen.",
 }
 
+var ApostlesCreed = Prayer{enApostlesCreed}
 var enApostlesCreed = []string{
 	"I believe in God,",
 	"the Father almighty,",
@@ -39,6 +52,7 @@ var enApostlesCreed = []string{
 	"Amen.",
 }
 
+var HailMary = Prayer{enHailMary}
 var enHailMary = []string{
 	"Hail Mary, full of grace,",
 	"The Lord is with thee.",
@@ -50,6 +64,7 @@ var enHailMary = []string{
 	"Amen.",
 }
 
+var OurFather = Prayer{enOurFather}
 var enOurFather = []string{
 	"Our Father, who art in heaven,",
 	"hallowed be thy name;",
@@ -64,6 +79,7 @@ var enOurFather = []string{
 	"Amen.",
 }
 
+var GloryBe = Prayer{enGloryBe}
 var enGloryBe = []string{
 	"Glory be to Father,",
 	"And to the Son,",
@@ -74,6 +90,7 @@ var enGloryBe = []string{
 	"Amen.",
 }
 
+var FatimaPrayer = Prayer{enFatimaPrayer}
 var enFatimaPrayer = []string{
 	"O my Jesus,",
 	"Forgive us our sins,",
@@ -82,6 +99,7 @@ var enFatimaPrayer = []string{
 	"Especially those who are in most need of thy mercy.",
 }
 
+var HailHolyQueen = Prayer{enHailHolyQueen}
 var enHailHolyQueen = []string{
 	"Hail, Holy Queen,",
 	"Mother of Mercy",
@@ -252,6 +270,17 @@ type Mystery struct {
 	Dedication string
 }
 
+func (m *Mystery) Prayer() *Prayer {
+	return &Prayer{
+		Verses: []string{
+			m.Name,
+			m.Dedication,
+			m.Verse,
+			m.Text,
+		},
+	}
+}
+
 func (m *Mystery) Print() {
 	fmt.Println(m.Name)
 	fmt.Println(m.Dedication)
@@ -284,24 +313,24 @@ var fp = strings.Join(enFatimaPrayer, "\n")
 var hhq = strings.Join(enHailHolyQueen, "\n")
 var hm = strings.Join(enHailMary, "\n")
 
-func m(i int) string {
-	return todaysMysteries()[i].String()
+func m(i int) *Prayer {
+	return todaysMysteries()[i].Prayer()
 }
 
-func getPrayer(i int) string {
+func getPrayer(i int) *Prayer {
 	switch i {
 	case 0, 78:
-		return soc
+		return &SignOfTheCross
 	case 1:
-		return ac
+		return &ApostlesCreed
 	case 2, 8, 22, 36, 50, 64:
-		return of
+		return &OurFather
 	case 6, 19, 33, 47, 61, 75:
-		return gb
+		return &GloryBe
 	case 7:
 		return m(0)
 	case 20, 34, 48, 62, 76:
-		return fp
+		return &FatimaPrayer
 	case 21:
 		return m(1)
 	case 35:
@@ -311,9 +340,9 @@ func getPrayer(i int) string {
 	case 63:
 		return m(4)
 	case 77:
-		return hhq
+		return &HailHolyQueen
 	default:
-		return hm
+		return &HailMary
 	}
 }
 
@@ -329,12 +358,51 @@ func main() {
 			http.NotFound(w, r)
 			return
 		}
-		fmt.Fprintf(w, "<pre>")
+		fmt.Fprintf(w, `<!DOCTYPE html>
+		<html lang="en">
+		<head>
+			<meta charset="UTF-8">
+			<meta name="viewport" content="width=device-width, initial-scale=1.0">
+			<title>{{.Title}}</title>
+			<style>
+				body {
+					margin: 0;
+					padding: 0;
+					font-family: sans-serif;
+					display: flex;
+					justify-content: center;
+					align-items: center;
+					min-height: 100vh;
+					text-align: center;
+					background-color: #f9f9f9;
+				}
+		
+				.container {
+					padding: 1rem;
+					max-width: 90%;
+				}
+		
+				h1 {
+					font-size: 2rem;
+				}
+		
+				p {
+					font-size: 1rem;
+					color: #333;
+				}
+			</style>
+		</head>
+		<body>
+			<div class="container">`)
 		if i < 78 {
 			fmt.Fprintf(w, "<a href=\"/%d\">Next</a> (%d/79)\n\n", i+1, i+1)
 		}
-		fmt.Fprintf(w, getPrayer(i))
-		fmt.Fprintf(w, "</pre>")
+		getPrayer(i).WriteHTML(w)
+		fmt.Fprintf(w, `
+		</div>
+	</body>
+	</html>
+	`)
 	})
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -342,3 +410,46 @@ func main() {
 	}
 	http.ListenAndServe(":"+port, nil)
 }
+
+var prayerHTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}}</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            text-align: center;
+            background-color: #f9f9f9;
+        }
+
+        .container {
+            padding: 1rem;
+            max-width: 90%;
+        }
+
+        h1 {
+            font-size: 2rem;
+        }
+
+        p {
+            font-size: 1rem;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>{{.Heading}}</h1>
+        <p>{{.Message}}</p>
+    </div>
+</body>
+</html>
+`
