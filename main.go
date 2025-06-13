@@ -349,7 +349,46 @@ func getPrayer(i int) *Prayer {
 func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "text/html")
-		fmt.Fprintf(w, "<pre><a href=\"/0\">Begin</a></pre>")
+		fmt.Fprintf(w, `<!DOCTYPE html>
+		<html lang="en">
+		<head>
+			<meta charset="UTF-8">
+			<meta name="viewport" content="width=device-width, initial-scale=1.0">
+			<title>Rosary</title>
+			<style>
+				body {
+					margin: 0;
+					padding: 0;
+					font-family: sans-serif;
+					display: flex;
+					justify-content: center;
+					align-items: center;
+					min-height: 100vh;
+					text-align: center;
+					background-color: #f9f9f9;
+				}
+		
+				.container {
+					padding: 1rem;
+					max-width: 90%;
+				}
+		
+				h1 {
+					font-size: 2rem;
+				}
+		
+				p {
+					font-size: 1rem;
+					color: #333;
+				}
+			</style>
+		</head>
+		<body>
+		<div class="container"><a href="/0">Begin</a>
+		</div>
+	</body>
+	</html>
+	`)
 	})
 	http.HandleFunc("/{i}", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "text/html")
