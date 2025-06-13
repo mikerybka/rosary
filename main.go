@@ -16,7 +16,7 @@ type Prayer struct {
 }
 
 func (p *Prayer) WriteHTML(w io.Writer) error {
-	tmpl := `<div style="text-align: center;">{{ range .Verses }}<p>{{ . }}</p>{{ end }}</div>`
+	tmpl := `<div style="">{{ range .Verses }}<div>{{ . }}</div>{{ end }}</div>`
 	return template.Must(template.New("prayer").Parse(tmpl)).Execute(w, p)
 }
 
@@ -393,11 +393,11 @@ func main() {
 			</style>
 		</head>
 		<body>
-			<div class="container">`)
-		if i < 78 {
-			fmt.Fprintf(w, "<a href=\"/%d\">Next</a> (%d/79)\n\n", i+1, i+1)
-		}
+		<div class="container">`)
 		getPrayer(i).WriteHTML(w)
+		if i < 78 {
+			fmt.Fprintf(w, "<p><a href=\"/%d\">Next</a> (%d/79)</p>", i+1, i+1)
+		}
 		fmt.Fprintf(w, `
 		</div>
 	</body>
