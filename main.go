@@ -394,7 +394,7 @@ func main() {
 			</style>
 		</head>
 		<body>
-		<div class="container"><a href="/0">Begin</a>
+		<div class="container"><a href="/0">Begin!</a>
 		</div>
 	</body>
 	</html>
