@@ -67,8 +67,7 @@ var enHailMary = []string{
 	"Holy Mary,",
 	"Mother of God,",
 	"Pray for us sinners,",
-	"Now,",
-	"And at the hour of our death.",
+	"Now, and at the hour of our death.",
 	"Amen.",
 }
 
