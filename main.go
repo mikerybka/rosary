@@ -193,7 +193,7 @@ var sorrowfulMysteries = []Mystery{
 		Text:       "Falling into an agony he prayed the more earnestly. And his sweat became as drops of blood running down upon the ground.",
 	},
 	{
-		Name:       "The Second Sorrowful Mystery: Scourgin at the Pillar",
+		Name:       "The Second Sorrowful Mystery: Scourging at the Pillar",
 		Verse:      "John 19:1",
 		Dedication: "For the virtue of purity",
 		Text:       "Pilate, them, took Jesus and had him scourged.",
